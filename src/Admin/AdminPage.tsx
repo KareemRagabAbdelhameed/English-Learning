@@ -1,5 +1,7 @@
 import { useState, useRef, FormEvent } from 'react'
 import axios from 'axios'
+import Swal from 'sweetalert2'
+import apiBaseUrl from '../config/axiosConfig'
 
 interface UploadResponse {
   videoUrl: string
@@ -9,7 +11,8 @@ interface UploadResponse {
 const AdminPage = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [youtubeUrl, setYoutubeUrl] = useState('')
-  const [selectedGrade, setSelectedGrade] = useState('')
+  const [selectedGrades, setSelectedGrades] = useState<string[]>([])
+  const [videoTitle, setVideoTitle] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [uploadType, setUploadType] = useState<'file' | 'youtube'>('file')
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -26,6 +29,15 @@ const AdminPage = () => {
     }
   }
 
+  const handleGradeChange = (gradeId: string) => {
+    setSelectedGrades(prevGrades => {
+      if (prevGrades.includes(gradeId)) {
+        return prevGrades.filter(id => id !== gradeId)
+      }
+      return [...prevGrades, gradeId]
+    })
+  }
+
   const uploadToCloudinary = async (file: File): Promise<UploadResponse> => {
     const formData = new FormData()
     formData.append('file', file)
@@ -37,9 +49,6 @@ const AdminPage = () => {
         `https://api.cloudinary.com/v1_1/dqmp5l622/video/upload`,
         formData
       )
-      console.log(response);
-      console.log(response.data.url);
-      console.log(response.data.public_id);
       return {
         videoUrl: response.data.url,
         public_id: response.data.public_id
@@ -52,8 +61,22 @@ const AdminPage = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!selectedGrade) {
-      alert('Please select a grade')
+    if (selectedGrades.length === 0) {
+      Swal.fire({
+        title: 'Error',
+        text: 'Please select at least one grade',
+        icon: 'error',
+        confirmButtonColor: '#0ea5e9'
+      })
+      return
+    }
+    if (!videoTitle.trim()) {
+      Swal.fire({
+        title: 'Error',
+        text: 'Please enter a video title',
+        icon: 'error',
+        confirmButtonColor: '#0ea5e9'
+      })
       return
     }
 
@@ -65,35 +88,69 @@ const AdminPage = () => {
         uploadResponse = await uploadToCloudinary(selectedFile)
       } else if (uploadType === 'youtube' && youtubeUrl) {
         // Send YouTube URL directly to backend
-        const response = await axios.post('/api/videos', {
-          type: 'youtube',
-          url: youtubeUrl,
-          gradeId: parseInt(selectedGrade)
+        await Promise.all(selectedGrades.map(gradeId => 
+          axios.post('/videos', {
+            type: 'youtube',
+            url: youtubeUrl,
+            title: videoTitle,
+            gradeId: parseInt(gradeId)
+          })
+        ))
+        
+        // Reset form
+        setSelectedFile(null)
+        setYoutubeUrl('')
+        setSelectedGrades([])
+        setVideoTitle('')
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''
+        }
+
+        await Swal.fire({
+          title: 'Success!',
+          text: 'Video uploaded successfully',
+          icon: 'success',
+          confirmButtonColor: '#0ea5e9'
         })
         return
       }
 
       if (uploadResponse) {
-        // Send video details to your backend
-        await axios.post('/api/videos', {
-          type: 'cloudinary',
-          url: uploadResponse.videoUrl,
-          publicId: uploadResponse.public_id,
-          gradeId: parseInt(selectedGrade)
-        });
+        // Send video details to your backend for each selected grade
+        await Promise.all(selectedGrades.map(gradeId =>
+          apiBaseUrl.post('/videos', {
+            type: 'cloudinary',
+            url: uploadResponse!.videoUrl,
+            publicId: uploadResponse!.public_id,
+            title: videoTitle,
+            gradeId: parseInt(gradeId)
+          })
+        ))
 
         // Reset form
         setSelectedFile(null)
         setYoutubeUrl('')
-        setSelectedGrade('')
+        setSelectedGrades([])
+        setVideoTitle('')
         if (fileInputRef.current) {
           fileInputRef.current.value = ''
         }
-        alert('Video uploaded successfully!')
+
+        await Swal.fire({
+          title: 'Success!',
+          text: 'Video uploaded successfully',
+          icon: 'success',
+          confirmButtonColor: '#0ea5e9'
+        })
       }
     } catch (error) {
       console.error('Error uploading video:', error)
-      alert('Error uploading video. Please try again.')
+      await Swal.fire({
+        title: 'Error!',
+        text: 'Failed to upload video. Please try again.',
+        icon: 'error',
+        confirmButtonColor: '#0ea5e9'
+      })
     } finally {
       setIsUploading(false)
     }
@@ -106,6 +163,22 @@ const AdminPage = () => {
         
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Video Title Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Video Title
+              </label>
+              <input
+                type="text"
+                value={videoTitle}
+                onChange={(e) => setVideoTitle(e.target.value)}
+                placeholder="Enter video title"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
+                  focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-gray-700 dark:text-white"
+                required
+              />
+            </div>
+
             {/* Upload Type Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -179,27 +252,30 @@ const AdminPage = () => {
             {/* Grade Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Select Grade
+                Select Grades
               </label>
-              <select
-                value={selectedGrade}
-                onChange={(e) => setSelectedGrade(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-                  focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-gray-700 dark:text-white"
-              >
-                <option value="">Select a grade</option>
+              <div className="grid grid-cols-3 gap-2">
                 {grades.map((grade) => (
-                  <option key={grade.id} value={grade.id}>
-                    {grade.name}
-                  </option>
+                  <label
+                    key={grade.id}
+                    className="flex items-center space-x-2 p-2 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedGrades.includes(grade.id.toString())}
+                      onChange={() => handleGradeChange(grade.id.toString())}
+                      className="rounded text-sky-500 focus:ring-sky-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{grade.name}</span>
+                  </label>
                 ))}
-              </select>
+              </div>
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isUploading || (!selectedFile && !youtubeUrl) || !selectedGrade}
+              disabled={isUploading || (!selectedFile && !youtubeUrl) || selectedGrades.length === 0 || !videoTitle.trim()}
               className="w-full bg-sky-500 text-white py-2 px-4 rounded-lg font-semibold
                 hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2
                 disabled:opacity-50 disabled:cursor-not-allowed"

@@ -1,29 +1,36 @@
+import { useNavigate } from 'react-router-dom'
 import grade1 from "../assets/first.jfif"
 import grade2 from "../assets/second.avif"
 import grade3 from "../assets/third.avif"
 
 const gradeData = [
   {
-    id: 7,
-    title: "First Grade",
+    id: 10,
+    title: "Laboratory Level 1",
     image: grade1,
     description: "Advanced English learning with focus on complex grammar, vocabulary expansion, and interactive speaking exercises.",
   },
   {
-    id: 8,
-    title: "Second Grade",
+    id: 11,
+    title: "Laboratory Level 2",
     image: grade2,
     description: "Intensive English program covering advanced reading comprehension, writing skills, and conversational fluency.",
   },
   {
-    id: 9,
-    title: "Third Grade",
+    id: 12,
+    title: "Laboratory Level 3",
     image: grade3,
     description: "Expert-level English instruction emphasizing academic writing, critical analysis, and professional communication.",
   },
 ]
 
 const Laporatory = () => {
+  const navigate = useNavigate()
+
+  const handleGradeClick = (gradeId: number) => {
+    navigate(`/grade/${gradeId}`)
+  }
+
   return (
     <div className="py-16 bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4">
@@ -55,7 +62,10 @@ const Laporatory = () => {
                 <p className="text-gray-600 dark:text-gray-300 mb-4">
                   {grade.description}
                 </p>
-                <button className="w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 transform hover:scale-[1.02]">
+                <button 
+                  onClick={() => handleGradeClick(grade.id)}
+                  className="w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 transform hover:scale-[1.02]"
+                >
                   Discover More
                 </button>
               </div>

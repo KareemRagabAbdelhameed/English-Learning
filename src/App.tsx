@@ -3,6 +3,7 @@ import HomePage from "./HomePage"
 import Register from "./Pages/Register"
 import Login from "./Pages/Login"
 import AdminPage from "./Admin/AdminPage"
+import GradePage from "./Pages/GradePage"
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
           <Route path="/register" element = {<Register />} />
           <Route path="/login" element = {<Login />} />
           <Route path="/admin" element = {<AdminPage />} />
+          <Route path="/grade/:gradeId" element={<GradePage />} />
         </Routes>
     </div>
   )

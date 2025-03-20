@@ -1,9 +1,10 @@
-import grade1 from '../../src/assets/first.jfif'
-import grade2 from '../../src/assets/second.avif'
-import grade3 from '../../src/assets/third.avif'
-import grade4 from '../../src/assets/forth.avif'
-import grade5 from '../../src/assets/fifth.avif'
-import grade6 from '../../src/assets/sixth.avif'
+import { useNavigate } from 'react-router-dom';
+import grade1 from '../../src/assets/first.jfif';
+import grade2 from '../../src/assets/second.avif';
+import grade3 from '../../src/assets/third.avif';
+import grade4 from '../../src/assets/forth.avif';
+import grade5 from '../../src/assets/fifth.avif';
+import grade6 from '../../src/assets/sixth.avif';
 
 const gradeData = [
   {
@@ -42,9 +43,15 @@ const gradeData = [
     image: grade6,
     description: "Prepare for secondary education with advanced reading comprehension, writing skills, and critical thinking.",
   },
-]
+];
 
 const Preparatory = () => {
+  const navigate = useNavigate();
+
+  const handleGradeClick = (gradeId: number) => {
+    navigate(`/grade/${gradeId}`);
+  };
+
   return (
     <div className="py-16 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto">
@@ -79,7 +86,10 @@ const Preparatory = () => {
                 <p className="text-gray-600 dark:text-gray-300 mb-4">
                   {grade.description}
                 </p>
-                <button className="w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 transform hover:scale-[1.02]">
+                <button 
+                  onClick={() => handleGradeClick(grade.id)}
+                  className="w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 transform hover:scale-[1.02]"
+                >
                   Discover More
                 </button>
               </div>
@@ -88,7 +98,7 @@ const Preparatory = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Preparatory
+export default Preparatory;

@@ -24,7 +24,7 @@ const Register = () => {
 
     try {
           // 2-fulfilled
-      const response = await apiBaseUrl.post("/user/signup",data);
+      const response = await apiBaseUrl.post("/users/signup",data);
       console.log(response);
       if(response.status===201){
         Swal.fire({

@@ -1,22 +1,23 @@
+import { useNavigate } from 'react-router-dom';
 import grade1 from "../assets/first.jfif"
 import grade2 from "../assets/second.avif"
 import grade3 from "../assets/third.avif"
 
 const gradeData = [
   {
-    id: 10,
+    id: 7,
     title: "First Secondary",
     image: grade1,
     description: "Comprehensive English curriculum focusing on advanced literature analysis, academic writing, and professional communication skills.",
   },
   {
-    id: 11,
+    id: 8,
     title: "Second Secondary",
     image: grade2,
     description: "Intensive program covering complex grammar structures, advanced vocabulary, and preparation for international English examinations.",
   },
   {
-    id: 12,
+    id: 9,
     title: "Third Secondary",
     image: grade3,
     description: "Advanced English course preparing students for university level with focus on research writing, presentations, and academic discourse.",
@@ -24,6 +25,12 @@ const gradeData = [
 ]
 
 const Secondary = () => {
+  const navigate = useNavigate()
+
+  const handleGradeClick = (gradeId: number) => {
+    navigate(`/grade/${gradeId}`)
+  }
+
   return (
     <div className="py-16 bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4">
@@ -58,7 +65,10 @@ const Secondary = () => {
                 <p className="text-gray-600 dark:text-gray-300 mb-4">
                   {grade.description}
                 </p>
-                <button className="w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 transform hover:scale-[1.02]">
+                <button 
+                  onClick={() => handleGradeClick(grade.id)}
+                  className="w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 transform hover:scale-[1.02]"
+                >
                   Discover More
                 </button>
               </div>
