@@ -5,19 +5,19 @@ import grade3 from "../assets/third.avif"
 
 const gradeData = [
   {
-    id: 7,
+    id: 10,
     title: "First Secondary",
     image: grade1,
     description: "Comprehensive English curriculum focusing on advanced literature analysis, academic writing, and professional communication skills.",
   },
   {
-    id: 8,
+    id: 11,
     title: "Second Secondary",
     image: grade2,
     description: "Intensive program covering complex grammar structures, advanced vocabulary, and preparation for international English examinations.",
   },
   {
-    id: 9,
+    id: 12,
     title: "Third Secondary",
     image: grade3,
     description: "Advanced English course preparing students for university level with focus on research writing, presentations, and academic discourse.",

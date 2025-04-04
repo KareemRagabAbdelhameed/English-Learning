@@ -1,7 +1,6 @@
 import * as yup from "yup";
 export const registerSchema = yup.object({
-    firstName : yup.string().required("*First Name is Required"),
-    lastName : yup.string().required("*Last Name is Required"),
+    username : yup.string().required("*Username is Required"),
     email : yup.string().required("*Email is Required").matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/,"Email not valid"),
     password: yup.string()
     .required("*Password is Required")

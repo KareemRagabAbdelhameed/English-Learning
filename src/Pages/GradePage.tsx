@@ -22,6 +22,12 @@ interface Video {
   lovedByCount: number
 }
 
+interface ApiResponse {
+  data?: Video[];  // Make data optional
+  message?: string;
+  success?: boolean;
+}
+
 const gradeImages = {
   1: grade1,
   2: grade2,
@@ -58,26 +64,38 @@ const GradePage = () => {
   const [videos, setVideos] = useState<Video[]>([])
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>("")
   const [videoLoadingStates, setVideoLoadingStates] = useState<Record<string, boolean>>({})
   const [videoErrorStates, setVideoErrorStates] = useState<Record<string, boolean>>({})
+  const [emptyResponseMessage, setEmptyResponseMessage] = useState<string>("")
 
   useEffect(() => {
     const fetchVideos = async () => {
       try {
         setLoading(true)
-        const response = await apiBaseUrl.get('/videos')
+        const response = await apiBaseUrl.get<ApiResponse>(`/videos?grade=${numericGradeId}`)
         
-        if (!response.data?.data || !Array.isArray(response.data.data)) {
-          throw new Error('Invalid response format')
-        }
+        // Check if response.data exists and has a data property
+        // if (!response.data || !response.data.data) {
+        //   throw new Error('Invalid response format from server')
+        // }
+
+        // Ensure response.data.data is an array before filtering
+        const responseData = Array.isArray(response.data.data) ? response.data.data : []
         
         // Filter videos for the current grade
-        const gradeVideos = response.data.data.filter((video: Video) => 
+        const gradeVideos = responseData.filter((video: Video) => 
           Array.isArray(video.grade) && video.grade.includes(numericGradeId)
         )
         
         setVideos(gradeVideos)
+        
+        // Set the message from backend if array is empty
+        if (gradeVideos.length === 0 && response.data.message) {
+          setEmptyResponseMessage(response.data.message)
+        } else {
+          setEmptyResponseMessage("")
+        }
         
         // Initialize loading states for all videos
         const initialLoadingStates = gradeVideos.reduce((acc: Record<string, boolean>, video: Video) => {
@@ -153,7 +171,7 @@ const GradePage = () => {
               <div className="text-red-500 text-center">{error}</div>
             ) : videos.length === 0 ? (
               <div className="text-gray-600 dark:text-gray-300 text-center">
-                No videos available for this grade yet.
+                {emptyResponseMessage || "No videos available for this grade yet."}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -221,7 +239,7 @@ const GradePage = () => {
               className="absolute top-4 right-4 text-white bg-red-500 hover:bg-red-600 rounded-full p-2 z-10"
               onClick={() => setSelectedVideo(null)}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-10 h-10 lg:w-28 lg:h-28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>

@@ -24,7 +24,7 @@ const Register = () => {
 
     try {
           // 2-fulfilled
-      const response = await apiBaseUrl.post("/users/signup",data);
+      const response = await apiBaseUrl.post("/users/signup",data,{withCredentials : true});
       console.log(response);
       if(response.status===201){
         Swal.fire({
@@ -75,15 +75,11 @@ const Register = () => {
             
             <div className=" lg:flex  lg:space-x-3 lg:space-y-0 space-y-3">
             <div className="flex flex-1 flex-col ">
-            <label htmlFor="first-name" className="font-medium">First Name :</label>
-            <input type="text" id="first-name" {...register("firstName")} className={`h-12 border-[1px] ${errors.firstName ? `border-red-500 focus:border-red-500` : `border-gray-600 focus:border-customBlue`} rounded-md pl-4 focus:outline-none focus:border-[2px]`} />
-            <p className="block text-red-700 font-semibold text-sm">{errors.firstName?.message}</p>
+            <label htmlFor="username" className="font-medium">Username :</label>
+            <input type="text" id="username" {...register("username")} className={`h-12 border-[1px] ${errors.username ? `border-red-500 focus:border-red-500` : `border-gray-600 focus:border-customBlue`} rounded-md pl-4 focus:outline-none focus:border-[2px]`} />
+            <p className="block text-red-700 font-semibold text-sm">{errors.username?.message}</p>
             </div>
-            <div className="flex flex-1 flex-col  ">
-            <label htmlFor="last-name"  className="font-medium">Last Name :</label>
-            <input type="text" id="last-name" {...register("lastName")} className={`h-12 border-[1px] ${errors.lastName ? `border-red-500 focus:border-red-500` : `border-gray-600 focus:border-customBlue`} rounded-md pl-4 focus:outline-none focus:border-[2px]`} />
-            <p className="block text-red-700 font-semibold text-sm">{errors.lastName?.message}</p>
-            </div>
+            
             </div>
             
             <div className="flex flex-col   space-y-1 relative">

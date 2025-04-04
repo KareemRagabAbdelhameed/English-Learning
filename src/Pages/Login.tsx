@@ -26,7 +26,7 @@ const Login = () => {
   const onSubmit = async (data:any) => {
     setIsLoading(true);
     try {
-      const response = await apiBaseUrl.post("/users/login", data);
+      const response = await apiBaseUrl.post("/users/login", data,{withCredentials : true});
       Cookies.set("userEmail", data.email, { expires: 7 });
 
       if (response.status === 200) {

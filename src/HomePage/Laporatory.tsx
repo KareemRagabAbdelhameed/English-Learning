@@ -5,19 +5,19 @@ import grade3 from "../assets/third.avif"
 
 const gradeData = [
   {
-    id: 10,
+    id: 7,
     title: "Laboratory Level 1",
     image: grade1,
     description: "Advanced English learning with focus on complex grammar, vocabulary expansion, and interactive speaking exercises.",
   },
   {
-    id: 11,
+    id: 8,
     title: "Laboratory Level 2",
     image: grade2,
     description: "Intensive English program covering advanced reading comprehension, writing skills, and conversational fluency.",
   },
   {
-    id: 12,
+    id: 9,
     title: "Laboratory Level 3",
     image: grade3,
     description: "Expert-level English instruction emphasizing academic writing, critical analysis, and professional communication.",
