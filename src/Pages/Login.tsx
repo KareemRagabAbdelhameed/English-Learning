@@ -27,6 +27,7 @@ const Login = () => {
     setIsLoading(true);
     try {
       const response = await apiBaseUrl.post("/users/login", data,{withCredentials : true});
+      console.log(response);
       Cookies.set("userEmail", data.email, { expires: 7 });
 
       if (response.status === 200) {

@@ -41,8 +41,8 @@ const AdminPage = () => {
   const uploadToCloudinary = async (file: File): Promise<UploadResponse> => {
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('upload_preset', 'english-videos');
-    formData.append('cloud_name',`dqmp5l622`);
+    formData.append('upload_preset', 'english-videos')
+    formData.append('cloud_name', 'dqmp5l622')
 
     try {
       const response = await axios.post(
@@ -57,6 +57,12 @@ const AdminPage = () => {
       console.error('Error uploading to Cloudinary:', error)
       throw error
     }
+  }
+
+  const extractYouTubeId = (url: string): string | null => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
+    const match = url.match(regExp)
+    return (match && match[2].length === 11) ? match[2] : null
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -80,69 +86,65 @@ const AdminPage = () => {
       return
     }
 
+    if (uploadType === 'youtube' && !youtubeUrl) {
+      Swal.fire({
+        title: 'Error',
+        text: 'Please enter a YouTube URL',
+        icon: 'error',
+        confirmButtonColor: '#0ea5e9'
+      })
+      return
+    }
+
     setIsUploading(true)
     try {
       let uploadResponse: UploadResponse | null = null
+      let youtubeVideoId: string | null = null
 
       if (uploadType === 'file' && selectedFile) {
         uploadResponse = await uploadToCloudinary(selectedFile)
-      } else if (uploadType === 'youtube' && youtubeUrl) {
-        // Send YouTube URL directly to backend
-        await Promise.all(selectedGrades.map(gradeId => 
-          axios.post('/videos', {
-            type: 'youtube',
-            url: youtubeUrl,
-            title: videoTitle,
-            gradeId: parseInt(gradeId)
-          })
-        ))
-        
-        // Reset form
-        setSelectedFile(null)
-        setYoutubeUrl('')
-        setSelectedGrades([])
-        setVideoTitle('')
-        if (fileInputRef.current) {
-          fileInputRef.current.value = ''
+      } else if (uploadType === 'youtube') {
+        youtubeVideoId = extractYouTubeId(youtubeUrl)
+        if (!youtubeVideoId) {
+          throw new Error('Invalid YouTube URL')
         }
-
-        await Swal.fire({
-          title: 'Success!',
-          text: 'Video uploaded successfully',
-          icon: 'success',
-          confirmButtonColor: '#0ea5e9'
-        })
-        return
       }
 
-      if (uploadResponse) {
-        // Send video details to your backend for each selected grade
-        await Promise.all(selectedGrades.map(gradeId =>
-          apiBaseUrl.post('/videos', {
-            type: 'cloudinary',
-            url: uploadResponse!.videoUrl,
-            publicId: uploadResponse!.public_id,
-            title: videoTitle,
-            gradeId: parseInt(gradeId)
-          })
-        ))
-
-        // Reset form
-        setSelectedFile(null)
-        setYoutubeUrl('')
-        setSelectedGrades([])
-        setVideoTitle('')
-        if (fileInputRef.current) {
-          fileInputRef.current.value = ''
-        }
-
-        await Swal.fire({
-          title: 'Success!',
-          text: 'Video uploaded successfully',
-          icon: 'success',
-          confirmButtonColor: '#0ea5e9'
-        })
+      const payload = {
+        title: videoTitle,
+        grade: selectedGrades.map(Number),
+        ...(uploadType === 'file' && uploadResponse
+          ? {
+              type: 'cloudinary',
+              videoUrl: uploadResponse.videoUrl,
+              videoPublicId: uploadResponse.public_id
+            }
+          : {
+              type: 'youtube',
+              videoUrl: youtubeUrl,
+              videoPublicId: youtubeVideoId || '' // Using YouTube video ID as public_id
+            })
       }
+
+      await apiBaseUrl.post('/videos', payload, {
+        withCredentials: true
+      })
+
+      // Reset form
+      setSelectedFile(null)
+      setYoutubeUrl('')
+      setSelectedGrades([])
+      setVideoTitle('')
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+
+      await Swal.fire({
+        title: 'Success!',
+        text: 'Video uploaded successfully',
+        icon: 'success',
+        confirmButtonColor: '#0ea5e9'
+      })
     } catch (error) {
       console.error('Error uploading video:', error)
       await Swal.fire({
@@ -245,6 +247,7 @@ const AdminPage = () => {
                   placeholder="https://youtube.com/watch?v=..."
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                     focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-gray-700 dark:text-white"
+                  required
                 />
               </div>
             )}
@@ -275,7 +278,11 @@ const AdminPage = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isUploading || (!selectedFile && !youtubeUrl) || selectedGrades.length === 0 || !videoTitle.trim()}
+              disabled={isUploading || 
+                (uploadType === 'file' && !selectedFile) || 
+                (uploadType === 'youtube' && !youtubeUrl) || 
+                selectedGrades.length === 0 || 
+                !videoTitle.trim()}
               className="w-full bg-sky-500 text-white py-2 px-4 rounded-lg font-semibold
                 hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2
                 disabled:opacity-50 disabled:cursor-not-allowed"
