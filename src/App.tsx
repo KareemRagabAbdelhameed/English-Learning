@@ -7,6 +7,7 @@ import GradePage from "./Pages/GradePage"
 import VerifyAccount from "./validation/VerifyAccount"
 import { UserProvider } from "./context/Context"
 import ProfilePage from "./Pages/ProfilePage"
+import ContactPage from "./Pages/Contact"
 
 const App = () => {
   return (
@@ -16,6 +17,7 @@ const App = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/register" element = {<Register />} />
           <Route path="/login" element = {<Login />} />
+          <Route path="/contact" element = {<ContactPage />} />
           <Route path="/admin" element = {<AdminPage />} />
           <Route path="/verify-account" element = {<VerifyAccount />} />
           <Route path="/grade/:gradeId" element={<GradePage />} />

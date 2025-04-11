@@ -23,7 +23,6 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    // Check if user is logged in by checking auth or businessOwnerAuth in context
     const checkLoginStatus = () => {
       const hasAuth = user?.auth || user?.adminAuth;
       setIsLoggedIn(!!hasAuth);
@@ -50,21 +49,17 @@ const Navbar = () => {
           { withCredentials: true }
         );
         if (response.status === 200) {
-          // Clear cookies
           Cookies.remove("auth");
           Cookies.remove("businessOwnerAuth");
           Cookies.remove("profilePicture");
           Cookies.remove("userEmail");
 
-          // Clear context state
           user?.setAuth(null);
           user?.setAdminAuth(null);
           user?.setProfilePicture("");
 
-          // Update login status
           setIsLoggedIn(false);
 
-          // Navigate to login page
           navigate("/login");
           Swal.fire({
             title: "Logged Out!",
@@ -82,7 +77,6 @@ const Navbar = () => {
     }
   };
 
-  // Get the current user (either regular user or business owner)
   const currentUser = user?.auth || user?.adminAuth;
   const profilePicture = user?.profilePicture || currentUser?.profilePicture?.url;
 
@@ -93,7 +87,6 @@ const Navbar = () => {
           <img src={logo} className="h-12 w-16 sm:h-16 sm:w-20" alt="Logo" />
         </a>
 
-        {/* Mobile menu button */}
         <div className="flex items-center space-x-2 md:hidden">
           <button
             onClick={toggleTheme}
@@ -121,7 +114,6 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Desktop menu */}
         <div className="hidden md:flex items-center space-x-4">
           <button
             onClick={toggleTheme}
@@ -141,6 +133,21 @@ const Navbar = () => {
 
           {isLoggedIn ? (
             <div className="flex items-center space-x-4">
+              {user?.adminAuth?.email &&
+                <button
+                  onClick={() => navigate("/admin")}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  Dashboard
+                </button>
+              }
+                <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Logout
+              </button>
+              
               {profilePicture ? (
                 <img 
                   src={profilePicture} 
@@ -158,12 +165,7 @@ const Navbar = () => {
                   </span>
                 </div>
               )}
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Logout
-              </button>
+              
             </div>
           ) : (
             <>
@@ -183,11 +185,26 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile menu */}
         <div className={`${isMenuOpen ? 'flex' : 'hidden'} w-full md:hidden mt-4 flex-col space-y-2`}>
           {isLoggedIn ? (
             <>
+            {user?.adminAuth?.email &&
+                <button
+                  onClick={() => navigate("/admin")}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  Dashboard
+                </button>
+                }
+                <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Logout
+              </button>
               <div className="flex justify-center">
+              
+
                 {profilePicture ? (
                   <img 
                     src={profilePicture} 
@@ -206,12 +223,7 @@ const Navbar = () => {
                   </div>
                 )}
               </div>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Logout
-              </button>
+              
             </>
           ) : (
             <>

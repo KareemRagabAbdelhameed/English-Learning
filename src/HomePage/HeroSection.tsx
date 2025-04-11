@@ -1,4 +1,5 @@
-import image from "../assets/Kareem Image.jpeg"
+import { Link } from "react-router-dom"
+import image from "../assets/mr-osama.jpeg"
 
 const HeroSection = () => {
   return (
@@ -13,15 +14,18 @@ const HeroSection = () => {
               Dedicated English Language Instructor with over 10 years of experience in teaching students of all levels
             </p>
             
-            <div className="mt-8 flex flex-col sm:flex-row justify-center lg:justify-start sm:space-x-6 space-y-4 sm:space-y-0">
-              <div>
-                <h4 className="text-xl sm:text-2xl font-bold text-white">500+</h4>
-                <p className="text-sm sm:text-base text-sky-100">Students Taught</p>
-              </div>
-              <div>
-                <h4 className="text-xl sm:text-2xl font-bold text-white">98%</h4>
-                <p className="text-sm sm:text-base text-sky-100">Success Rate</p>
-              </div>
+
+            {/* Added Contact Button */}
+            <div className="mt-8">
+              <Link
+                to="/contact"
+                className="inline-flex items-center px-6 py-3 text-base font-medium text-center text-sky-600 bg-white rounded-lg hover:bg-sky-50 focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-900 transition-all duration-300 transform hover:scale-105"
+              >
+                Contact Me
+                <svg className="w-5 h-5 ml-2 -mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
+                </svg>
+              </Link>
             </div>
           </div>
           <div className="mt-8 lg:mt-0 lg:col-span-5 flex items-center justify-center">

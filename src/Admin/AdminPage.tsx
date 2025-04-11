@@ -2,18 +2,15 @@ import { useState, useRef, FormEvent } from 'react'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import apiBaseUrl from '../config/axiosConfig'
+import { useNavigate } from 'react-router-dom'
 
 interface UploadResponse {
   videoUrl: string
   public_id: string
 }
 
-// Add this interface near the top with other interfaces
-interface VideoProps {
-  videoId: string;
-}
-
-const AdminPage = ({ videoId }: VideoProps) => {
+const AdminPage = () => {
+  const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [selectedGrades, setSelectedGrades] = useState<string[]>([])
@@ -166,7 +163,15 @@ const AdminPage = ({ videoId }: VideoProps) => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-2xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Upload Video</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Upload Video</h1>
+          <button
+            onClick={() => navigate('/')}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            Back to Home
+          </button>
+        </div>
         
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -295,46 +300,6 @@ const AdminPage = ({ videoId }: VideoProps) => {
               {isUploading ? 'Uploading...' : 'Upload Video'}
             </button>
           </form>
-
-          {/* Add Video Management Buttons */}
-          <div className="mt-8 space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Video Management</h2>
-            <div className="flex space-x-4">
-              <button
-                onClick={() => {
-                  // Add your edit logic here
-                  console.log('Edit video clicked')
-                }}
-                className="flex-1 bg-yellow-500 text-white py-2 px-4 rounded-lg font-semibold
-                  hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
-              >
-                Edit Video
-              </button>
-              <button
-                onClick={() => {
-                  // Add your delete logic here
-                  Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You won't be able to revert this!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Yes, delete it!'
-                  }).then((result) => {
-                    if (result.isConfirmed) {
-                      // Add your delete API call here
-                      console.log('Delete video confirmed')
-                    }
-                  })
-                }}
-                className="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg font-semibold
-                  hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-              >
-                Delete Video
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

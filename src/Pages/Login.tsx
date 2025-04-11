@@ -54,7 +54,12 @@ const Login = () => {
           draggable: true,
         }).then((result) => {
           if (result.isConfirmed) {
+            // if(role === "user"){
             navigate("/");
+            // }
+            // else if(role === "admin"){
+            //   navigate("/admin");
+            // }
           }
         });
       }

@@ -21,7 +21,6 @@ export interface IUserContext {
   setAdminAuth: React.Dispatch<React.SetStateAction<IUser | null>>;
   profilePicture: string;
   setProfilePicture: React.Dispatch<React.SetStateAction<string>>;
-  logout: () => void;
 }
 
 export interface IProps {
@@ -92,19 +91,6 @@ export const UserProvider: React.FC<IProps> = ({ children }) => {
     }
   }, [profilePicture]);
 
-  // Logout function
-  const logout = useCallback(() => {
-    setAuth(null);
-    setAdminAuth(null);
-    setProfilePicture("");
-    // Clear all auth-related cookies
-    Cookies.remove("auth");
-    Cookies.remove("adminAuth");
-    Cookies.remove("profilePicture");
-    Cookies.remove("userEmail");
-    // Add any other cookies you need to clear
-  }, []);
-
   return (
     <UserContext.Provider
       value={{
@@ -114,7 +100,7 @@ export const UserProvider: React.FC<IProps> = ({ children }) => {
         setAdminAuth: setAdminAuth,
         profilePicture,
         setProfilePicture,
-        logout
+        
       }}
     >
       {children}

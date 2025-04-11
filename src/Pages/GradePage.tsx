@@ -14,6 +14,7 @@ import lab2 from '../assets/second.avif'
 import lab3 from '../assets/third.avif'
 import apiBaseUrl from '../config/axiosConfig'
 import { UserContext } from '../context/Context'
+import Swal from 'sweetalert2'
 
 interface Video {
   id?: string
@@ -170,10 +171,45 @@ const GradePage = () => {
         [videoId]: !prev[videoId], // Toggle only the clicked video
       }));
   
-      const response = await apiBaseUrl.patch(`/videos/${videoId}/toggleLove`);
+      const response = await apiBaseUrl.patch(`/videos/${videoId}/toggleLove`,{},{withCredentials: true  });
       console.log(response);
     } catch (error) {
       console.error("Failed to toggle like:", error);
+    }
+  };
+
+  const handleDeleteVideo = async (videoId: string) => {
+    try {
+      const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+      });
+  
+      if (result.isConfirmed) {
+        await apiBaseUrl.delete(`/videos/${videoId}`, { withCredentials: true });
+        
+  
+        // Update local state to remove the deleted video
+        setVideos(prev => prev.filter(v => v.id !== videoId));
+  
+        Swal.fire(
+          'Deleted!',
+          'Your video has been deleted.',
+          'success'
+        );
+      }
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      Swal.fire(
+        'Error!',
+        'Failed to delete video.',
+        'error'
+      );
     }
   };
 
@@ -232,19 +268,37 @@ const GradePage = () => {
                     key={video.url}
                     className="bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden transform transition-transform hover:scale-105 relative group"
                   >
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDownload(video.url, video.title);
-                      }}
-                      className="absolute top-2 left-2 z-20 bg-blue-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Download video"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                      </svg>
-                    </button>
-
+                    {user?.auth?.email && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownload(video.url, video.title);
+                        }}
+                        className="absolute top-2 left-2 z-20 bg-blue-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Download video"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                      </button>
+                    )}
+                    
+                    {user?.adminAuth?.email && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteVideo(video.id || '');
+                        }}
+                        className="absolute top-2 right-2 z-20 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                        title="Delete video"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
+                    
+                    {/* Rest of the video card content */}
                     <div 
                       className="cursor-pointer"
                       onClick={() => setSelectedVideo(video)}
@@ -325,6 +379,20 @@ const GradePage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                 </svg>
               </button>
+               
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        handleDeleteVideo(selectedVideo.id || '');
+      }}
+      className="absolute top-2 right-2 z-20 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+      title="Delete video"
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+      </svg>
+    </button>
+  
             </div>
 
             <button
