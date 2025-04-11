@@ -8,7 +8,12 @@ interface UploadResponse {
   public_id: string
 }
 
-const AdminPage = () => {
+// Add this interface near the top with other interfaces
+interface VideoProps {
+  videoId: string;
+}
+
+const AdminPage = ({ videoId }: VideoProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [selectedGrades, setSelectedGrades] = useState<string[]>([])
@@ -290,6 +295,46 @@ const AdminPage = () => {
               {isUploading ? 'Uploading...' : 'Upload Video'}
             </button>
           </form>
+
+          {/* Add Video Management Buttons */}
+          <div className="mt-8 space-y-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Video Management</h2>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => {
+                  // Add your edit logic here
+                  console.log('Edit video clicked')
+                }}
+                className="flex-1 bg-yellow-500 text-white py-2 px-4 rounded-lg font-semibold
+                  hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
+              >
+                Edit Video
+              </button>
+              <button
+                onClick={() => {
+                  // Add your delete logic here
+                  Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, delete it!'
+                  }).then((result) => {
+                    if (result.isConfirmed) {
+                      // Add your delete API call here
+                      console.log('Delete video confirmed')
+                    }
+                  })
+                }}
+                className="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg font-semibold
+                  hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              >
+                Delete Video
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

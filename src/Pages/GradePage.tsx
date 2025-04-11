@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import grade1 from '../assets/first.jfif'
 import grade2 from '../assets/second.avif'
 import grade3 from '../assets/third.avif'
@@ -13,13 +13,14 @@ import lab1 from '../assets/first.jfif'
 import lab2 from '../assets/second.avif'
 import lab3 from '../assets/third.avif'
 import apiBaseUrl from '../config/axiosConfig'
+import { UserContext } from '../context/Context'
 
 interface Video {
-  id?: number
+  id?: string
   title: string
   url: string
   grade: number[]
-  lovedByCount: number
+  lovedByCount : number
   type?: 'youtube' | 'cloudinary'
 }
 
@@ -51,12 +52,12 @@ const gradeTitles = {
   4: "Fourth Grade",
   5: "Fifth Grade",
   6: "Sixth Grade",
-  7: "First Secondary Grade",
-  8: "Second Secondary Grade",
-  9: "Third Secondary Grade",
-  10: "Laboratory Level 1",
-  11: "Laboratory Level 2",
-  12: "Laboratory Level 3",
+  7: "Laboratory Level 1",
+  8: "Laboratory Level 2",
+  9: "Laboratory Level 3",
+  10: "First Secondary Grade",
+  11: "Second Secondary Grade",
+  12: "Third Secondary Grade",
 }
 
 const convertToEmbedUrl = (url: string): string => {
@@ -76,6 +77,7 @@ const convertToEmbedUrl = (url: string): string => {
 }
 
 const GradePage = () => {
+  const user = useContext(UserContext);
   const { gradeId } = useParams<{ gradeId: string }>()
   const numericGradeId = Number(gradeId)
   const [videos, setVideos] = useState<Video[]>([])
@@ -85,13 +87,12 @@ const GradePage = () => {
   const [videoLoadingStates, setVideoLoadingStates] = useState<Record<string, boolean>>({})
   const [videoErrorStates, setVideoErrorStates] = useState<Record<string, boolean>>({})
   const [emptyResponseMessage, setEmptyResponseMessage] = useState<string>("")
-
-  useEffect(() => {
+  const [lovedVideos, setLovedVideos] = useState<Record<string, boolean>>({});  useEffect(() => {
     const fetchVideos = async () => {
       try {
         setLoading(true)
         const response = await apiBaseUrl.get<ApiResponse>(`/videos?grade=${numericGradeId}`)
-        
+        console.log(response);
         const responseData = Array.isArray(response.data?.data) ? response.data.data : []
         
         const gradeVideos = responseData.filter((video: Video) => 
@@ -139,17 +140,14 @@ const GradePage = () => {
 
   const handleDownload = (videoUrl: string, videoTitle: string) => {
     try {
-      // Extract YouTube video ID
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
       const match = videoUrl.match(regExp);
       const videoId = (match && match[2].length === 11) ? match[2] : null;
 
       if (videoId) {
-        // Open download service in new tab
         const downloadUrl = `https://www.y2mate.com/youtube/${videoId}`;
         window.open(downloadUrl, '_blank');
       } else if (videoUrl.includes('cloudinary.com')) {
-        // Direct download for Cloudinary videos
         const downloadLink = document.createElement('a');
         downloadLink.href = videoUrl;
         downloadLink.download = `${videoTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp4`;
@@ -162,6 +160,20 @@ const GradePage = () => {
     } catch (error) {
       console.error('Download error:', error);
       alert('Failed to initiate download. Please try again.');
+    }
+  };
+
+  const toggleLove = async (videoId: string) => {
+    try {
+      setLovedVideos((prev) => ({
+        ...prev,
+        [videoId]: !prev[videoId], // Toggle only the clicked video
+      }));
+  
+      const response = await apiBaseUrl.patch(`/videos/${videoId}/toggleLove`);
+      console.log(response);
+    } catch (error) {
+      console.error("Failed to toggle like:", error);
     }
   };
 
@@ -264,14 +276,26 @@ const GradePage = () => {
                           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                             {video.title}
                           </h3>
-                          <div className="flex items-center text-gray-600 dark:text-gray-300">
-                            <svg className="w-5 h-5 text-red-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M9.653 16.915l-.005-.003-.019-.01a20.759 20.759 0 01-1.162-.682 22.045 22.045 0 01-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 018-2.828A4.5 4.5 0 0118 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 01-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 01-.69.001l-.002-.001z" />
-                            </svg>
-                            {video.lovedByCount}
-                          </div>
-                        </div>
-                      </div>
+                          <div className="flex items-center gap-1 text-gray-500">
+                          {user?.auth?.email ? <button onClick={(e) => {e.stopPropagation() , toggleLove(video.id || "")}}>
+  <svg
+    className="w-5 h-5 transition-colors duration-300"
+    fill={lovedVideos[video.id || ""] ? "red" : "none"}
+    stroke="currentColor"
+    strokeWidth={2}
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+    />
+  </svg>
+</button> : ""}
+             <span>{video.lovedByCount}</span>
+              </div>
+              </div>
+              </div>
                     </div>
                   </div>
                 ))}
@@ -320,16 +344,10 @@ const GradePage = () => {
                 allowFullScreen
               />
             </div>
-            <div className="p-4 flex justify-between items-center">
+            <div className="p-4">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                 {selectedVideo.title}
               </h3>
-              <div className="flex items-center text-gray-600 dark:text-gray-300">
-                <svg className="w-6 h-6 text-red-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.653 16.915l-.005-.003-.019-.01a20.759 20.759 0 01-1.162-.682 22.045 22.045 0 01-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 018-2.828A4.5 4.5 0 0118 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 01-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 01-.69.001l-.002-.001z" />
-                </svg>
-                {selectedVideo.lovedByCount}
-              </div>
             </div>
           </div>
         </div>

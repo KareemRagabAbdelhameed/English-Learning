@@ -1,18 +1,90 @@
-import { useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import logo from "../assets/logo.webp"
+import Cookies from "js-cookie";
+import Swal from 'sweetalert2';
+import apiBaseUrl from '../config/axiosConfig';
+import { UserContext } from '../context/Context';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
-  const [isDark, setIsDark] = useState(false)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const user = useContext(UserContext);
+  const navigate = useNavigate();
+  const [isDark, setIsDark] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const toggleTheme = () => {
-    setIsDark(!isDark)
-    document.documentElement.classList.toggle('dark')
-  }
+    setIsDark(!isDark);
+    document.documentElement.classList.toggle('dark');
+  };
 
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen)
-  }
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  useEffect(() => {
+    // Check if user is logged in by checking auth or businessOwnerAuth in context
+    const checkLoginStatus = () => {
+      const hasAuth = user?.auth || user?.adminAuth;
+      setIsLoggedIn(!!hasAuth);
+    };
+
+    checkLoginStatus();
+  }, [user?.auth, user?.adminAuth]);
+
+  const handleLogout = async () => {
+    try {
+      const { isConfirmed } = await Swal.fire({
+        title: "Are you sure you want to logout?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, logout!",
+      });
+
+      if (isConfirmed) {
+        const response = await apiBaseUrl.post(
+          `/users/logout`,
+          {},
+          { withCredentials: true }
+        );
+        if (response.status === 200) {
+          // Clear cookies
+          Cookies.remove("auth");
+          Cookies.remove("businessOwnerAuth");
+          Cookies.remove("profilePicture");
+          Cookies.remove("userEmail");
+
+          // Clear context state
+          user?.setAuth(null);
+          user?.setAdminAuth(null);
+          user?.setProfilePicture("");
+
+          // Update login status
+          setIsLoggedIn(false);
+
+          // Navigate to login page
+          navigate("/login");
+          Swal.fire({
+            title: "Logged Out!",
+            text: "You have been successfully logged out.",
+            icon: "success",
+          });
+        }
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Logout Failed",
+        text: "An error occurred during logout",
+      });
+    }
+  };
+
+  // Get the current user (either regular user or business owner)
+  const currentUser = user?.auth || user?.adminAuth;
+  const profilePicture = user?.profilePicture || currentUser?.profilePicture?.url;
 
   return (
     <nav className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 shadow-md">
@@ -66,34 +138,97 @@ const Navbar = () => {
               </svg>
             )}
           </button>
-          <a
-            href="/login"
-            className="px-4 py-2 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
-          >
-            Login
-          </a>
-          <a
-            href="/register"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Create Account
-          </a>
+
+          {isLoggedIn ? (
+            <div className="flex items-center space-x-4">
+              {profilePicture ? (
+                <img 
+                  src={profilePicture} 
+                  alt="Profile" 
+                  className="w-10 h-10 rounded-full object-cover cursor-pointer"
+                  onClick={() => navigate("/profile")}
+                />
+              ) : (
+                <div 
+                  className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center cursor-pointer"
+                  onClick={() => navigate("/profile")}
+                >
+                  <span className="text-gray-700 dark:text-gray-300">
+                    {currentUser?.name?.charAt(0).toUpperCase() || 'U'}
+                  </span>
+                </div>
+              )}
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <>
+              <a
+                href="/login"
+                className="px-4 py-2 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
+              >
+                Login
+              </a>
+              <a
+                href="/register"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Create Account
+              </a>
+            </>
+          )}
         </div>
 
         {/* Mobile menu */}
         <div className={`${isMenuOpen ? 'flex' : 'hidden'} w-full md:hidden mt-4 flex-col space-y-2`}>
-          <a
-            href="/login"
-            className="px-4 py-2 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors text-center"
-          >
-            Login
-          </a>
-          <a
-            href="/register"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center"
-          >
-            Create Account
-          </a>
+          {isLoggedIn ? (
+            <>
+              <div className="flex justify-center">
+                {profilePicture ? (
+                  <img 
+                    src={profilePicture} 
+                    alt="Profile" 
+                    className="w-10 h-10 rounded-full object-cover cursor-pointer mx-auto"
+                    onClick={() => navigate("/profile")}
+                  />
+                ) : (
+                  <div 
+                    className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center cursor-pointer mx-auto"
+                    onClick={() => navigate("/profile")}
+                  >
+                    <span className="text-gray-700 dark:text-gray-300">
+                      {currentUser?.name?.charAt(0).toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <a
+                href="/login"
+                className="px-4 py-2 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors text-center"
+              >
+                Login
+              </a>
+              <a
+                href="/register"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center"
+              >
+                Create Account
+              </a>
+            </>
+          )}
         </div>
       </div>
     </nav>

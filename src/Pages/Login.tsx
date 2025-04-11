@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import mymage from "../assets/register&login.png";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { faLock, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchema } from "../validation";
@@ -11,8 +11,10 @@ import apiBaseUrl from "../config/axiosConfig";
 import Cookies from "js-cookie";
 import Swal from "sweetalert2";
 import axios from "axios";
-
+import { UserContext } from "../context/Context";
 const Login = () => {
+  const userNow = useContext(UserContext);
+  console.log(userNow);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const {
@@ -28,6 +30,21 @@ const Login = () => {
     try {
       const response = await apiBaseUrl.post("/users/login", data,{withCredentials : true});
       console.log(response);
+
+        const role = response.data.data.user.role;
+        const userDetails = response.data.data.user;
+        const adminDetails = response.data.data.user;
+        const getProfilePicture = response.data.data.user.profilePicture.url;
+
+        // if(role === "user"){
+          userNow?.setAuth(userDetails);
+          userNow?.setProfilePicture(getProfilePicture);
+        // }
+        // else if(role === "admin"){
+        //   userNow?.setAdminAuth(adminDetails);
+        //   userNow?.setProfilePicture(getProfilePicture);
+        // }
+
       Cookies.set("userEmail", data.email, { expires: 7 });
 
       if (response.status === 200) {
